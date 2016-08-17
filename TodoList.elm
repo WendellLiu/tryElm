@@ -1,4 +1,4 @@
-import Html exposing (Html, button, div, text, input, ul, li)
+import Html exposing (Html, button, div, span, text, input, ul, li)
 import Html.App as App
 import Html.Events exposing (onClick, onInput)
 import Html.Attributes as Attr
@@ -52,6 +52,7 @@ update msg model =
         else
           model.tasks
         , nowId = model.nowId + 1
+        , inputText = ""
       }
 
     ChangeVisibility visibility ->
@@ -61,12 +62,36 @@ update msg model =
       { model | inputText = text }
 
     ToggleTask id ->
-      { model | tasks = List.map (\task -> if task.id == id then { task | complete = task.complete == False } else task ) model.tasks }
+      { model |
+        tasks = List.map
+          (\task -> if task.id == id
+            then { task | complete = task.complete == False }
+            else task )
+          model.tasks
+      }
 
 -- VIEW
 
-todosView : List Task -> List (Html Msg)
-todosView tasks = List.map (\task -> li [ onClick (ToggleTask task.id) ] [ text (toString task.complete ++ " " ++ task.content) ]) tasks
+todosView : Visibility -> List Task -> List (Html Msg)
+todosView visibility tasks =
+  let
+    filterTasks =
+      case visibility of
+        All ->
+          tasks
+
+        Completed ->
+          List.filter
+          (\task -> task.complete == True)
+          tasks
+        Active ->
+          List.filter
+          (\task -> task.complete == False)
+          tasks
+  in
+    List.map
+    (\task -> li [ onClick (ToggleTask task.id) ] [ text (toString task.complete ++ " " ++ task.content) ])
+    filterTasks
 
 -- onEnter msg : Msg -> Attribute Msg
 -- onEnter msg =
@@ -77,7 +102,21 @@ todosView tasks = List.map (\task -> li [ onClick (ToggleTask task.id) ] [ text 
 view : Model -> Html Msg
 view model =
   div []
-    [ input [ Attr.type' "text", Attr.placeholder "task", onInput ChangeInputText  ] [ ]
+    [ input [ Attr.type' "text", Attr.placeholder "task", onInput ChangeInputText, Attr.value model.inputText  ] [ ]
     , button [ onClick Add ] [ text "Add" ]
-    , ul [] (todosView model.tasks)
+    , filterNav
+    , ul [] (todosView model.visibility model.tasks)
+    ]
+
+nav : Visibility -> Html Msg
+nav visibility =
+  div [ onClick (ChangeVisibility visibility) ] [ text (toString visibility) ]
+
+filterNav : Html Msg
+filterNav =
+  div []
+    [
+      nav All,
+      nav Active,
+      nav Completed
     ]
