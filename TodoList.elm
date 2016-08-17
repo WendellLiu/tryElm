@@ -38,6 +38,7 @@ model =
 
 type Msg
   = Add
+  | ClearAll
   | ChangeVisibility Visibility
   | ChangeInputText String
   | ToggleTask Int
@@ -54,6 +55,9 @@ update msg model =
         , nowId = model.nowId + 1
         , inputText = ""
       }
+
+    ClearAll ->
+      { model | tasks = [] }
 
     ChangeVisibility visibility ->
       { model | visibility = visibility }
@@ -104,6 +108,7 @@ view model =
   div []
     [ input [ Attr.type' "text", Attr.placeholder "task", onInput ChangeInputText, Attr.value model.inputText  ] [ ]
     , button [ onClick Add ] [ text "Add" ]
+    , button [ onClick ClearAll ] [ text "Clear All" ]
     , filterNav
     , ul [] (todosView model.visibility model.tasks)
     ]
