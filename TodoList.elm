@@ -83,7 +83,6 @@ todosView visibility tasks =
       case visibility of
         All ->
           tasks
-
         Completed ->
           List.filter
           (\task -> task.complete == True)
